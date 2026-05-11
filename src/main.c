@@ -227,13 +227,14 @@ static char *slurp(const char *path, size_t *out_len) {
   long n = ftell(f);
   assert(n >= 0);
   rewind(f);
-  char *buf = malloc((size_t)n);
+  char *buf = malloc((size_t)n + 1);
   assert(buf);
   size_t got = fread(buf, 1, (size_t)n, f);
   assert(got == (size_t)n);
 #ifdef NDEBUG
   (void)got;
 #endif // NDEBUG
+  buf[n] = '\0';
   fclose(f);
   *out_len = (size_t)n;
   return buf;
