@@ -116,8 +116,7 @@ void model_free(struct model *m) {
   free(m->buckets);
 }
 
-struct entry *model_lookup(struct model *m, struct key key) {
-  assert(m);
+static struct entry *lookup(struct model *m, struct key key) {
   // mask-step-index api stolen from https://nullprogram.com/blog/2022/08/08/
   uint32_t hash = (uint32_t)key_hash(key);
   uint32_t mask = (1u << EXP) - 1u;
@@ -143,7 +142,7 @@ void model_train(struct model *m) {
   assert(m->corpus_len > N);
   for (size_t i = 0; i + N < m->corpus_len; ++i) {
     struct key k = key_new(m->corpus + i);
-    struct entry *e = model_lookup(m, k);
+    struct entry *e = lookup(m, k);
     // is this a new 4-gram sequence?
     if (key_empty(e->key)) {
       // sure is... before doing anything, try grow buckets
@@ -168,11 +167,11 @@ void model_dump(struct model *m, FILE *out) {
 }
 
 static bool contains(struct model *m, const char *ctx) {
-  return !key_empty(model_lookup(m, key_new(ctx))->key);
+  return !key_empty(lookup(m, key_new(ctx))->key);
 }
 
 static char step(struct model *m, const char *ctx, struct rng *rng) {
-  struct entry *e = model_lookup(m, key_new(ctx));
+  struct entry *e = lookup(m, key_new(ctx));
   assert(!key_empty(e->key));
   struct bucket *b = &m->buckets[value_get(e->value)];
   assert(b->total != 0);
